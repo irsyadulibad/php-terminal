@@ -26,7 +26,7 @@ if(isset($req->command)) {
     <input type="text" name="command" id="command" autocomplete="off" autofocus>
 
     <script>
-        var historyIndex = 0;
+        var historyIndex = -1;
         const command = document.getElementById('command');
         const output = document.getElementById('output');
         const url = document.location.href;
@@ -51,14 +51,28 @@ if(isset($req->command)) {
 
         function addHistory(history) {
             const histories = JSON.parse(sessionStorage.getItem('history')) || [];
-            histories.push(history);
+            histories.unshift(history);
 
             sessionStorage.setItem('history', JSON.stringify(histories));
         }
 
         function getHistory(direction) {
             const histories = JSON.parse(sessionStorage.getItem('history')) || [];
-            const history = histories[window.historyIndex++];
+            const total = histories.length;
+
+            if(direction == 'up') {
+                if(window.historyIndex + 1 < histories.length) window.historyIndex++;
+
+                const history = histories[window.historyIndex];
+                return history;
+            }
+
+            if(direction == 'down') {
+                if(window.historyIndex < 0) return '';
+
+                const history = histories[--window.historyIndex] || '';
+                return history;
+            }
         }
 
         command.addEventListener('keypress', function(e) {

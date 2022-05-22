@@ -1,6 +1,6 @@
 <?php
 $req = json_decode(file_get_contents('php://input', true));
-$userTerm = shell_exec("whoami");
+$userTerm = trim(shell_exec("whoami"));
 
 function json_output($output) {
     header('Content-Type: application/json');
@@ -13,7 +13,7 @@ if(PHP_OS_FAMILY == "Windows"){
     $locationInfo = shell_exec("cd");
     $path = "set PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\composer;C:\laragon\bin\php\php-8-latest;";
 }else{
-    $path = "";
+    $path = "export HOME=/home/$userTerm";
     $locationInfo = shell_exec("pwd");
 }
 
@@ -35,7 +35,7 @@ if(isset($req->command)) {
     <div id="output"></div>
     <div class="wrap-command">
      <div class="col">
-         <label><span class="user"><?=$userTerm?></span><span class="location"><?=$locationInfo?></span><?=$branch?></label>
+         <label><span class="user"><?= $userTerm ?></span> <span class="location"><?= $locationInfo ?></span><?= $branch ?></label>
      </div>
      <div class="col flex">  
       <label for="">$</label>

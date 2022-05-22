@@ -6,28 +6,41 @@ function json_output($output) {
     header('Content-Type: application/json');
     echo json_encode($output);
 }
-$path = "set PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\composer;C:\laragon\bin\php\php-8-latest;";
+$os = PHP_OS_FAMILY;
+$branch = shell_exec('git branch');
+
+if(PHP_OS_FAMILY == "Windows"){
+    $locationInfo = shell_exec("cd");
+    $path = "set PATH=C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\composer;C:\laragon\bin\php\php-8-latest;";
+}else{
+    $path = "";
+    $locationInfo = shell_exec("pwd");
+}
 
 if(isset($req->command)) {
     $res = shell_exec($path."&& {$req->command} 2>&1");
-
     return json_output(['output' => $res]);
 }
-?>
 
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>termcpanel</title>
+    <title>Terminal - <?=$os;?></title>
 </head>
 <body>
     <div id="output"></div>
     <div class="wrap-command">
-    <label><span class="user"><?=$userTerm?></span>~ $</label>
-    <input type="text" name="command" id="command" autocomplete="off" autofocus>
+     <div class="col">
+         <label><span class="user"><?=$userTerm?></span><span class="location"><?=$locationInfo?></span><?=$branch?></label>
+     </div>
+     <div class="col flex">  
+      <label for="">$</label>
+         <input type="text" name="command" id="command" autocomplete="off" autofocus>
+     </div>
     </div>
     <script>
         var historyIndex = -1;
@@ -83,10 +96,12 @@ if(isset($req->command)) {
             if(e.key == 'Enter') {
                 if(this.value == 'clear') {
                     output.innerHTML = '';
+                } else if(this.value == 'exit'){
+                   const exit = confirm("Do yo want to leave?");
+                   if(exit) window.close();
                 } else {
                     hitCommand();
                 }
-
                 addHistory(this.value);
                 command.value = '';
             }
@@ -96,6 +111,11 @@ if(isset($req->command)) {
             if(e.key == 'ArrowUp') command.value = getHistory('up');
             if(e.key == 'ArrowDown') command.value = getHistory('down');
         });
+
+        window.addEventListener("beforeunload", function(e) {
+            e.preventDefault();
+            e.returnValue = "Do you want to end this session?";
+        }); 
     </script>
     <style type="text/css">
     body{
@@ -111,17 +131,23 @@ if(isset($req->command)) {
         color: #fff;
     }
     form{
-        display: flex;
+        width: 100%;
+        box-sizing: border-box;
     }
     input{
         outline: none;
+        padding: 2px 5px;
         border: none;
         background: #000;
+        width: 100%;
+        box-sizing: border-box;
         color: #fff;
          font-family: 'Segoe UI', sans-serif;
         box-sizing: border-box;
     }
-
+    .location{
+        color: yellowgreen;
+    }
     #output{
         color: #fff;
         font-family: 'consolas', sans-serif;
@@ -132,14 +158,28 @@ if(isset($req->command)) {
         float: right;
     }
     .wrap-command{
+        display: block;
+        width: 100%;
+    } 
+    .wrap-command p{
+        max-width: 400px;
+    }    
+    .wrap-command label{
+        color:#fff;
+    }
+
+    .col{
+        width: 100%;
+    }
+    .flex{
         display: flex;
-    }     
+    }
+    .flex label{
+        color: gray;
+    }
     .user{
         color: green;
-    }  
-    label{
-
-    }
+    } 
 </style>
 </body>
 </html>

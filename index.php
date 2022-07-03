@@ -20,6 +20,10 @@ if(PHP_OS_FAMILY == "Windows"){
 if(isset($req->command)) {
     $res = shell_exec($path."&&  {$req->command} 2>&1");
     return json_output(['output' => $res]);
+    if(substr($req->command, 0, 5) == "nano"){
+        $reqfile = substr(6, 20);
+        system("vim  $reqfile `tty`");
+    }
 }
 
 ?>
